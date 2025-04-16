@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Heart, MessageCircle, Video, Users, Sliders, 
-  Bell, UserCircle, Search, X 
+  Bell, UserCircle, Search, X, Settings, LogOut, UserRound
 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -10,6 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useNavigate } from 'react-router-dom';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 type MainLayoutProps = {
   children: React.ReactNode;
@@ -22,14 +31,30 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   currentTab, 
   onTabChange 
 }) => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<number>(0);
   const [isPremium, setIsPremium] = useState<boolean>(false);
   
-  // New state for dialogs
+  // Dialog states
   const [profileDialogOpen, setProfileDialogOpen] = useState<boolean>(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState<boolean>(false);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState<boolean>(false);
   const [searchDialogOpen, setSearchDialogOpen] = useState<boolean>(false);
+  const [editProfileDialogOpen, setEditProfileDialogOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  
+  // Profile edit form state
+  const [editedProfile, setEditedProfile] = useState<{
+    name: string;
+    username: string;
+    email: string;
+    avatar: string;
+  }>({
+    name: '',
+    username: '',
+    email: '',
+    avatar: ''
+  });
   
   // Dummy notification data
   const [notificationItems, setNotificationItems] = useState<Array<{id: string, title: string, message: string, time: string, read: boolean}>>([
@@ -45,6 +70,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     email: 'john@example.com',
     avatar: ''
   });
+  
+  // Initialize edited profile when profile changes
+  useEffect(() => {
+    setEditedProfile({ ...profile });
+  }, [profile]);
   
   // Simulated notifications
   useEffect(() => {
@@ -89,8 +119,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   // Handle logout
   const handleLogout = () => {
     // In a real app, this would clear auth tokens, etc.
+    localStorage.removeItem('user');
+    localStorage.removeItem('datingProfile');
     setProfileDialogOpen(false);
     console.log('User logged out');
+    
+    // Simulate a logout redirect
+    alert('You have been logged out successfully!');
+    // In a real app, this would redirect to login page
+    navigate('/');
+  };
+  
+  // Handle profile update
+  const handleProfileUpdate = () => {
+    // In a real app, this would make an API call to update the profile
+    setProfile({ ...editedProfile });
+    setEditProfileDialogOpen(false);
+    console.log('Profile updated:', editedProfile);
+    
+    // Show confirmation
+    alert('Profile updated successfully!');
+  };
+  
+  // Handle settings update
+  const handleSettingsUpdate = () => {
+    // In a real app, this would update user settings
+    setSettingsDialogOpen(false);
+    console.log('Settings updated');
+    
+    // Show confirmation
+    alert('Settings updated successfully!');
   };
   
   // Navigation tabs
@@ -157,13 +215,33 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             )}
           </button>
           
-          <button 
-            onClick={() => setProfileDialogOpen(true)}
-            className="focus:outline-none hover:opacity-80 transition-opacity"
-            aria-label="Profile"
-          >
-            <UserCircle className="h-8 w-8 text-muted-foreground" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button 
+                className="focus:outline-none hover:opacity-80 transition-opacity"
+                aria-label="Profile"
+              >
+                <UserCircle className="h-8 w-8 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setEditProfileDialogOpen(true)}>
+                <UserRound className="mr-2 h-4 w-4" />
+                <span>Edit Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSettingsDialogOpen(true)}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
       
@@ -218,11 +296,143 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             <p className="text-sm text-muted-foreground">{profile.email}</p>
             
             <div className="mt-4 w-full">
-              <Button variant="outline" className="w-full mb-2">Edit Profile</Button>
-              <Button variant="outline" className="w-full mb-2">Settings</Button>
+              <Button variant="outline" className="w-full mb-2" onClick={() => setEditProfileDialogOpen(true)}>Edit Profile</Button>
+              <Button variant="outline" className="w-full mb-2" onClick={() => setSettingsDialogOpen(true)}>Settings</Button>
               <Button variant="outline" className="w-full mb-2" onClick={handleLogout}>Log Out</Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Profile Dialog */}
+      <Dialog open={editProfileDialogOpen} onOpenChange={setEditProfileDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+            <DialogDescription>
+              Update your profile information
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col py-4">
+            <div className="flex justify-center mb-4">
+              <Avatar className="h-24 w-24">
+                <AvatarFallback>{editedProfile.name.charAt(0)}</AvatarFallback>
+                {editedProfile.avatar && <AvatarImage src={editedProfile.avatar} alt={editedProfile.name} />}
+              </Avatar>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex flex-col space-y-2">
+                <label htmlFor="name" className="text-sm font-medium">Full Name</label>
+                <Input 
+                  id="name" 
+                  value={editedProfile.name} 
+                  onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
+                />
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <label htmlFor="username" className="text-sm font-medium">Username</label>
+                <Input 
+                  id="username" 
+                  value={editedProfile.username} 
+                  onChange={(e) => setEditedProfile({...editedProfile, username: e.target.value})}
+                />
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <label htmlFor="email" className="text-sm font-medium">Email</label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={editedProfile.email} 
+                  onChange={(e) => setEditedProfile({...editedProfile, email: e.target.value})}
+                />
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <label htmlFor="avatar" className="text-sm font-medium">Avatar URL</label>
+                <Input 
+                  id="avatar" 
+                  value={editedProfile.avatar} 
+                  placeholder="https://example.com/avatar.jpg"
+                  onChange={(e) => setEditedProfile({...editedProfile, avatar: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditProfileDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleProfileUpdate}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Settings Dialog */}
+      <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+            <DialogDescription>
+              Customize your application preferences
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col py-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Dark Mode</span>
+                <div className="flex items-center h-5">
+                  <input
+                    id="darkMode"
+                    type="checkbox"
+                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Notifications</span>
+                <div className="flex items-center h-5">
+                  <input
+                    id="notifications"
+                    type="checkbox"
+                    defaultChecked
+                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Sound Effects</span>
+                <div className="flex items-center h-5">
+                  <input
+                    id="soundEffects"
+                    type="checkbox"
+                    defaultChecked
+                    className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <label htmlFor="language" className="text-sm font-medium">Language</label>
+                <select
+                  id="language"
+                  className="rounded-md border border-gray-300 py-2 px-3 text-sm"
+                  defaultValue="en"
+                >
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                  <option value="fr">Français</option>
+                  <option value="de">Deutsch</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSettingsDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSettingsUpdate}>Save Settings</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       
