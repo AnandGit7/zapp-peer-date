@@ -37,13 +37,23 @@ export const initDatabase = async (): Promise<void> => {
       storeName: 'dating',
       description: 'Dating feature storage',
     }),
+    localforage.createInstance({
+      name: 'zapp',
+      storeName: 'groups',
+      description: 'Groups storage',
+    }),
+    localforage.createInstance({
+      name: 'zapp',
+      storeName: 'status',
+      description: 'Status updates storage',
+    }),
   ]);
   
   console.log('[Database] Initialized IndexedDB storage');
 };
 
 // Get a specific store instance
-export const getStore = (storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating') => {
+export const getStore = (storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating' | 'groups' | 'status') => {
   return localforage.createInstance({
     name: 'zapp',
     storeName,
@@ -54,7 +64,7 @@ export const getStore = (storeName: 'messages' | 'profiles' | 'media' | 'prefere
 
 // Create or update an item
 export const setItem = async <T>(
-  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating',
+  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating' | 'groups' | 'status',
   key: string,
   value: T
 ): Promise<T> => {
@@ -65,7 +75,7 @@ export const setItem = async <T>(
 
 // Get an item
 export const getItem = async <T>(
-  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating',
+  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating' | 'groups' | 'status',
   key: string
 ): Promise<T | null> => {
   const store = getStore(storeName);
@@ -74,7 +84,7 @@ export const getItem = async <T>(
 
 // Remove an item
 export const removeItem = async (
-  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating',
+  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating' | 'groups' | 'status',
   key: string
 ): Promise<void> => {
   const store = getStore(storeName);
@@ -83,7 +93,7 @@ export const removeItem = async (
 
 // Get all keys in a store
 export const getKeys = async (
-  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating'
+  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating' | 'groups' | 'status'
 ): Promise<string[]> => {
   const store = getStore(storeName);
   return store.keys();
@@ -91,7 +101,7 @@ export const getKeys = async (
 
 // Get all items in a store
 export const getAllItems = async <T>(
-  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating'
+  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating' | 'groups' | 'status'
 ): Promise<T[]> => {
   const store = getStore(storeName);
   const keys = await store.keys();
@@ -109,7 +119,7 @@ export const getAllItems = async <T>(
 
 // Clear a specific store
 export const clearStore = async (
-  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating'
+  storeName: 'messages' | 'profiles' | 'media' | 'preferences' | 'dating' | 'groups' | 'status'
 ): Promise<void> => {
   const store = getStore(storeName);
   return store.clear();

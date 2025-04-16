@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getAllContacts, Contact } from '@/services/ContactService';
-import { saveGroup, getAllGroups, Group } from '@/services/GroupService';
+import { saveGroup, getAllGroups, Group, GroupMember } from '@/services/GroupService';
 
 const GroupsView: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -65,14 +65,14 @@ const GroupsView: React.FC = () => {
     
     try {
       const groupId = `group-${Date.now()}`;
-      const memberDetails = selectedContacts.map(contactId => {
+      const memberDetails: GroupMember[] = selectedContacts.map(contactId => {
         const contact = contacts.find(c => c.id === contactId);
         return {
           id: contactId,
           name: contact?.name || '',
           avatar: contact?.avatar,
           peerId: contact?.peerId || '',
-          role: 'member'
+          role: 'member' as const
         };
       });
       
