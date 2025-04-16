@@ -5,7 +5,10 @@ import { DatingProvider } from '@/context/DatingContext';
 import MainLayout from '@/components/layout/MainLayout';
 import ChatsList from '@/components/chats/ChatsList';
 import ChatView from '@/components/chats/ChatView';
-import DatingHome from '@/components/dating/DatingHome';
+import DatingHomeEnhanced from '@/components/dating/DatingHomeEnhanced';
+import CallsView from '@/components/calls/CallsView';
+import StatusView from '@/components/status/StatusView';
+import GroupsView from '@/components/groups/GroupsView';
 
 type TabType = 'dating' | 'chats' | 'status' | 'groups' | 'calls';
 
@@ -53,47 +56,18 @@ const Index = () => {
       case 'dating':
         return (
           <DatingProvider>
-            <DatingHome onStartChat={handleStartChatFromDating} />
+            <DatingHomeEnhanced onStartChat={handleStartChatFromDating} />
           </DatingProvider>
         );
         
       case 'status':
-        return (
-          <div className="flex items-center justify-center h-full p-8 text-center">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">Status Coming Soon</h2>
-              <p className="text-muted-foreground">
-                Share encrypted, ephemeral updates with your connections. 
-                All data will be stored peer-to-peer.
-              </p>
-            </div>
-          </div>
-        );
+        return <StatusView />;
         
       case 'groups':
-        return (
-          <div className="flex items-center justify-center h-full p-8 text-center">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">Groups Coming Soon</h2>
-              <p className="text-muted-foreground">
-                Create secure P2P group conversations with end-to-end encryption.
-              </p>
-            </div>
-          </div>
-        );
+        return <GroupsView />;
         
       case 'calls':
-        return (
-          <div className="flex items-center justify-center h-full p-8 text-center">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">Amazing Video Quality</h2>
-              <p className="text-muted-foreground mb-4">
-                Enjoy direct peer-to-peer video and voice calling with crystal-clear quality
-              </p>
-              <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 animate-pulse"></div>
-            </div>
-          </div>
-        );
+        return <CallsView />;
         
       default:
         return null;
