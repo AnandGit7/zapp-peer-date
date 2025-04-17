@@ -14,7 +14,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { getAllContacts, Contact } from '@/services/ContactService';
 import { saveGroup, getAllGroups, Group, GroupMember } from '@/services/GroupService';
 
-const GroupsView: React.FC = () => {
+interface GroupsViewProps {
+  selectedGroupId: string | null;
+  onSelectGroup: (groupId: string) => void;
+}
+
+const GroupsView: React.FC<GroupsViewProps> = ({ selectedGroupId, onSelectGroup }) => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);

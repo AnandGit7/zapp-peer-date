@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,15 +13,16 @@ import { getAllMatches, Match, updateMatch } from '@/services/DatingService';
 
 type DatingHomeEnhancedProps = {
   onStartChat: (matchId: string) => void;
+  selectedMatchId: string | null;
+  onSelectMatch: (matchId: string) => void;
 };
 
-const DatingHomeEnhanced: React.FC<DatingHomeEnhancedProps> = ({ onStartChat }) => {
+const DatingHomeEnhanced: React.FC<DatingHomeEnhancedProps> = ({ onStartChat, selectedMatchId, onSelectMatch }) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
   const [activeTab, setActiveTab] = useState('discover');
   
-  // Initialize data
   useEffect(() => {
     const loadMatches = async () => {
       try {
@@ -33,7 +33,6 @@ const DatingHomeEnhanced: React.FC<DatingHomeEnhancedProps> = ({ onStartChat }) 
       }
     };
     
-    // Check premium status
     const checkPremium = () => {
       try {
         const profile = localStorage.getItem('datingProfile');
@@ -50,7 +49,6 @@ const DatingHomeEnhanced: React.FC<DatingHomeEnhancedProps> = ({ onStartChat }) 
     checkPremium();
   }, []);
   
-  // Handle likes and dislikes
   const handleLike = async () => {
     if (currentIndex >= matches.length) return;
     
@@ -86,10 +84,8 @@ const DatingHomeEnhanced: React.FC<DatingHomeEnhancedProps> = ({ onStartChat }) 
     }
   };
   
-  // Filter matched profiles (mutual likes)
   const mutualMatches = matches.filter(match => match.liked && match.hasLikedYou);
   
-  // Render current profile card
   const renderCurrentProfile = () => {
     if (currentIndex >= matches.length) {
       return (
@@ -258,7 +254,6 @@ const DatingHomeEnhanced: React.FC<DatingHomeEnhancedProps> = ({ onStartChat }) 
                     size="sm" 
                     className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
                     onClick={() => {
-                      // Set premium in local storage for demo
                       try {
                         const profile = localStorage.getItem('datingProfile') || '{}';
                         const parsed = JSON.parse(profile);
