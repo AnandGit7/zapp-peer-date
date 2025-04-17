@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Heart, MessageCircle, Video, Users, Sliders, 
@@ -22,6 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { uploadProfileImage } from '@/services/IPFSService';
 import { toast } from 'sonner';
+import GroupNavigation from '@/components/navigation/GroupNavigation';
+import DatingNavigation from '@/components/navigation/DatingNavigation';
 
 type MainLayoutProps = {
   children: React.ReactNode;
@@ -40,7 +41,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   
-  // Dialog states
   const [profileDialogOpen, setProfileDialogOpen] = useState<boolean>(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState<boolean>(false);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState<boolean>(false);
@@ -48,7 +48,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const [editProfileDialogOpen, setEditProfileDialogOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   
-  // Profile edit form state
   const [editedProfile, setEditedProfile] = useState<{
     name: string;
     username: string;
@@ -61,14 +60,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     avatar: ''
   });
   
-  // Dummy notification data
   const [notificationItems, setNotificationItems] = useState<Array<{id: string, title: string, message: string, time: string, read: boolean}>>([
     { id: '1', title: 'New Message', message: 'John sent you a message', time: '2 min ago', read: false },
     { id: '2', title: 'Match Alert', message: 'You have a new match!', time: '1 hour ago', read: false },
     { id: '3', title: 'Status Update', message: 'Lisa posted a new status', time: '3 hours ago', read: false },
   ]);
   
-  // Profile data
   const [profile, setProfile] = useState<{name: string, username: string, email: string, avatar: string}>({
     name: 'John Doe',
     username: '@johndoe',
@@ -76,14 +73,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     avatar: ''
   });
   
-  // Initialize edited profile when profile changes
   useEffect(() => {
     setEditedProfile({ ...profile });
   }, [profile]);
   
-  // Simulated notifications
   useEffect(() => {
-    // Simulate random notifications
     const notificationTimer = setInterval(() => {
       setNotifications(Math.floor(Math.random() * 5));
     }, 30000);
@@ -91,7 +85,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     return () => clearInterval(notificationTimer);
   }, []);
   
-  // Check if premium from localStorage
   useEffect(() => {
     const checkPremium = () => {
       try {
@@ -113,7 +106,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     };
   }, []);
   
-  // Mark all notifications as read
   const markAllAsRead = () => {
     setNotificationItems(prev => 
       prev.map(item => ({ ...item, read: true }))
@@ -121,52 +113,39 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     setNotifications(0);
   };
   
-  // Handle logout
   const handleLogout = () => {
-    // In a real app, this would clear auth tokens, etc.
     localStorage.removeItem('user');
     localStorage.removeItem('datingProfile');
     setProfileDialogOpen(false);
     console.log('User logged out');
     
-    // Simulate a logout redirect
     toast.success('You have been logged out successfully!');
-    // In a real app, this would redirect to login page
     navigate('/');
   };
   
-  // Handle profile update
   const handleProfileUpdate = () => {
-    // In a real app, this would make an API call to update the profile
     setProfile({ ...editedProfile });
     setEditProfileDialogOpen(false);
     console.log('Profile updated:', editedProfile);
     
-    // Show confirmation
     toast.success('Profile updated successfully!');
   };
   
-  // Handle settings update
   const handleSettingsUpdate = () => {
-    // In a real app, this would update user settings
     setSettingsDialogOpen(false);
     console.log('Settings updated');
     
-    // Show confirmation
     toast.success('Settings updated successfully!');
   };
   
-  // Handle profile picture change
   const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     try {
       setIsUploading(true);
-      // Upload profile image and get URL
       const imageUrl = await uploadProfileImage(file);
       
-      // Update the profile state with the new avatar URL
       setEditedProfile(prev => ({
         ...prev,
         avatar: imageUrl
@@ -178,41 +157,42 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       toast.error(error instanceof Error ? error.message : 'Failed to upload profile picture');
     } finally {
       setIsUploading(false);
-      // Reset the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   };
   
-  // Trigger file input click
   const triggerFileInput = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
   
-  // Navigation tabs
   const tabs = [
     {
       id: 'chats',
       label: 'Chats',
       icon: <MessageCircle className={currentTab === 'chats' ? 'text-primary' : 'text-muted-foreground'} />,
+      component: null,
     },
     {
       id: 'calls',
       label: 'Calls',
       icon: <Video className={currentTab === 'calls' ? 'text-primary' : 'text-muted-foreground'} />,
+      component: null,
     },
     {
       id: 'status',
       label: 'Status',
       icon: <Sliders className={currentTab === 'status' ? 'text-primary' : 'text-muted-foreground'} />,
+      component: null,
     },
     {
       id: 'groups',
       label: 'Groups',
       icon: <Users className={currentTab === 'groups' ? 'text-primary' : 'text-muted-foreground'} />,
+      component: <GroupNavigation />,
     },
     {
       id: 'dating',
@@ -222,12 +202,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         : 'text-muted-foreground'} 
         fill={currentTab === 'dating' ? (isPremium ? '#D946EF' : 'currentColor') : 'none'} />,
       premium: true,
+      component: <DatingNavigation />,
     },
   ];
   
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
         <div className="flex flex-1 items-center gap-4">
           <h1 className="text-xl font-bold tracking-tight">
@@ -293,39 +273,40 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         </div>
       </header>
       
-      {/* Main Content */}
       <main className="flex-1 overflow-auto">{children}</main>
       
-      {/* Bottom Navigation */}
       <div className="sticky bottom-0 z-30 flex h-16 items-center gap-4 border-t bg-background px-4 sm:px-6">
         <div className="grid w-full grid-cols-5 gap-1">
           {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`flex flex-col items-center justify-center py-1 px-2 rounded-md transition-colors ${
-                currentTab === tab.id ? 'bg-transparent' : 'hover:bg-muted'
-              }`}
-              onClick={() => onTabChange(tab.id as any)}
-            >
-              <div className="relative">
-                {tab.icon}
-                {tab.premium && isPremium && tab.id === 'dating' && (
-                  <span className="absolute -top-1 -right-1 block h-2 w-2 rounded-full bg-zapp-dating-primary" />
-                )}
-              </div>
-              <span className={`text-xs mt-1 ${
-                currentTab === tab.id 
-                  ? (tab.id === 'dating' && isPremium ? 'text-zapp-dating-primary font-medium' : 'text-primary font-medium') 
-                  : 'text-muted-foreground'
-              }`}>
-                {tab.label}
-              </span>
-            </button>
+            <div key={tab.id} className="relative">
+              {tab.component && currentTab === tab.id ? (
+                <div className="absolute bottom-full mb-2">{tab.component}</div>
+              ) : null}
+              <button
+                className={`flex flex-col items-center justify-center py-1 px-2 rounded-md transition-colors ${
+                  currentTab === tab.id ? 'bg-transparent' : 'hover:bg-muted'
+                }`}
+                onClick={() => onTabChange(tab.id as any)}
+              >
+                <div className="relative">
+                  {tab.icon}
+                  {tab.premium && isPremium && tab.id === 'dating' && (
+                    <span className="absolute -top-1 -right-1 block h-2 w-2 rounded-full bg-zapp-dating-primary" />
+                  )}
+                </div>
+                <span className={`text-xs mt-1 ${
+                  currentTab === tab.id 
+                    ? (tab.id === 'dating' && isPremium ? 'text-zapp-dating-primary font-medium' : 'text-primary font-medium') 
+                    : 'text-muted-foreground'
+                }`}>
+                  {tab.label}
+                </span>
+              </button>
+            </div>
           ))}
         </div>
       </div>
       
-      {/* Profile Dialog */}
       <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -354,7 +335,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         </DialogContent>
       </Dialog>
       
-      {/* Edit Profile Dialog */}
       <Dialog open={editProfileDialogOpen} onOpenChange={setEditProfileDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -431,7 +411,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         </DialogContent>
       </Dialog>
       
-      {/* Settings Dialog */}
       <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -499,7 +478,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         </DialogContent>
       </Dialog>
       
-      {/* Notifications Dialog */}
       <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -536,7 +514,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         </DialogContent>
       </Dialog>
       
-      {/* Search Dialog */}
       <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

@@ -15,13 +15,22 @@ type TabType = 'dating' | 'chats' | 'status' | 'groups' | 'calls';
 const Index = () => {
   const [currentTab, setCurrentTab] = useState<TabType>('chats');
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   
   // Handle tab changes
   const handleTabChange = (tab: TabType) => {
     setCurrentTab(tab);
-    // Clear selected chat when changing tabs
+    
+    // Clear selected items when changing tabs
     if (tab !== 'chats') {
       setSelectedChatId(null);
+    }
+    if (tab !== 'groups') {
+      setSelectedGroupId(null);
+    }
+    if (tab !== 'dating') {
+      setSelectedMatchId(null);
     }
   };
   
@@ -43,6 +52,16 @@ const Index = () => {
     setCurrentTab('chats');
   };
   
+  // Handle selecting a group
+  const handleSelectGroup = (groupId: string) => {
+    setSelectedGroupId(groupId);
+  };
+  
+  // Handle selecting a match
+  const handleSelectMatch = (matchId: string) => {
+    setSelectedMatchId(matchId);
+  };
+  
   // Render content based on current tab
   const renderContent = () => {
     switch (currentTab) {
@@ -56,7 +75,11 @@ const Index = () => {
       case 'dating':
         return (
           <DatingProvider>
-            <DatingHomeEnhanced onStartChat={handleStartChatFromDating} />
+            <DatingHomeEnhanced 
+              onStartChat={handleStartChatFromDating}
+              selectedMatchId={selectedMatchId}
+              onSelectMatch={handleSelectMatch} 
+            />
           </DatingProvider>
         );
         
@@ -64,7 +87,12 @@ const Index = () => {
         return <StatusView />;
         
       case 'groups':
-        return <GroupsView />;
+        return (
+          <GroupsView 
+            selectedGroupId={selectedGroupId}
+            onSelectGroup={handleSelectGroup}
+          />
+        );
         
       case 'calls':
         return <CallsView />;
