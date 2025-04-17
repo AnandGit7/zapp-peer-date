@@ -12,7 +12,7 @@ interface GroupListProps {
 }
 
 const GroupList: React.FC<GroupListProps> = ({ groups, onOpenCreateDialog }) => {
-  if (groups.length === 0) {
+  if (!groups || groups.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center py-8">
         <div className="mb-4 rounded-full bg-muted p-3">
@@ -42,13 +42,13 @@ const GroupList: React.FC<GroupListProps> = ({ groups, onOpenCreateDialog }) => 
           <CardHeader className="pb-2">
             <div className="flex items-center">
               <Avatar className="h-12 w-12 mr-2">
-                <AvatarImage src={group.avatar} alt={group.name} />
+                <AvatarImage src={group.avatar} alt={group.name || 'Group'} />
                 <AvatarFallback><UsersRound className="h-6 w-6" /></AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <CardTitle className="text-lg">{group.name}</CardTitle>
+                <CardTitle className="text-lg">{group.name || 'Unnamed Group'}</CardTitle>
                 <CardDescription className="text-xs">
-                  {group.members.length} members • Created {new Date(group.createdAt).toLocaleDateString()}
+                  {group.members?.length || 0} members • Created {new Date(group.createdAt || Date.now()).toLocaleDateString()}
                 </CardDescription>
               </div>
               <Button variant="ghost" size="icon">
@@ -63,14 +63,14 @@ const GroupList: React.FC<GroupListProps> = ({ groups, onOpenCreateDialog }) => 
             )}
             
             <div className="flex -space-x-2 overflow-hidden">
-              {group.members.slice(0, 5).map(member => (
+              {group.members && group.members.slice(0, 5).map(member => (
                 <Avatar key={member.id} className="border-2 border-background h-8 w-8">
                   <AvatarImage src={member.avatar} alt={member.name} />
-                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{member.name?.charAt(0) || '?'}</AvatarFallback>
                 </Avatar>
               ))}
               
-              {group.members.length > 5 && (
+              {group.members && group.members.length > 5 && (
                 <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted text-xs font-medium">
                   +{group.members.length - 5}
                 </div>

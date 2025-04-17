@@ -27,7 +27,7 @@ const GroupNavigation = () => {
       try {
         setIsLoading(true);
         const fetchedGroups = await getAllGroups();
-        setGroups(fetchedGroups);
+        setGroups(fetchedGroups || []);
       } catch (error) {
         console.error('Failed to fetch groups:', error);
         toast.error('Failed to load groups');
@@ -79,7 +79,7 @@ const GroupNavigation = () => {
                 </div>
               ) : (
                 <ul className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {groups.length > 0 ? (
+                  {groups && groups.length > 0 ? (
                     groups.map((group) => (
                       <li key={group.id}>
                         <NavigationMenuLink asChild>
@@ -93,12 +93,12 @@ const GroupNavigation = () => {
                               {group.avatar ? (
                                 <AvatarImage src={group.avatar} alt={group.name} />
                               ) : null}
-                              <AvatarFallback>{group.name.charAt(0)}</AvatarFallback>
+                              <AvatarFallback>{group.name?.charAt(0) || '?'}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{group.name}</p>
+                              <p className="text-sm font-medium truncate">{group.name || 'Unnamed Group'}</p>
                               <p className="text-xs text-muted-foreground truncate">
-                                {group.members.length} members
+                                {group.members?.length || 0} members
                               </p>
                             </div>
                           </button>

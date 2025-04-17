@@ -15,11 +15,11 @@ interface GroupsViewProps {
 const GroupsView: React.FC<GroupsViewProps> = ({ selectedGroupId, onSelectGroup }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [openCreate, setOpenCreate] = useState(false);
-  const { groups, contacts, refreshData } = useGroups();
+  const { groups, contacts, isLoading, refreshData } = useGroups();
   
-  const filteredGroups = groups.filter(
-    group => group.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredGroups = groups?.filter(
+    group => group?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
   
   return (
     <div className="flex flex-col h-full">
@@ -31,7 +31,11 @@ const GroupsView: React.FC<GroupsViewProps> = ({ selectedGroupId, onSelectGroup 
       />
       
       <div className="flex-1 overflow-y-auto p-4">
-        {filteredGroups.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredGroups.length > 0 ? (
           <GroupList 
             groups={filteredGroups}
             onOpenCreateDialog={() => setOpenCreate(true)}
@@ -47,7 +51,7 @@ const GroupsView: React.FC<GroupsViewProps> = ({ selectedGroupId, onSelectGroup 
       <CreateGroupDialog
         isOpen={openCreate}
         onOpenChange={setOpenCreate}
-        contacts={contacts}
+        contacts={contacts || []}
         onGroupCreated={refreshData}
       />
     </div>
