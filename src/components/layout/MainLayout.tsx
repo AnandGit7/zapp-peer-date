@@ -1,8 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Heart, MessageCircle, Video, Users, Sliders, 
-  Bell, UserCircle, Search, X, Settings, LogOut, UserRound
+  Bell, UserCircle, Search, X, Settings, LogOut, UserRound,
+  Upload, Camera, Loader2
 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -19,6 +20,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { uploadProfileImage } from '@/services/IPFSService';
+import { toast } from 'sonner';
 
 type MainLayoutProps = {
   children: React.ReactNode;
@@ -34,6 +37,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<number>(0);
   const [isPremium, setIsPremium] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
   
   // Dialog states
   const [profileDialogOpen, setProfileDialogOpen] = useState<boolean>(false);
@@ -125,7 +130,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     console.log('User logged out');
     
     // Simulate a logout redirect
-    alert('You have been logged out successfully!');
+    toast.success('You have been logged out successfully!');
     // In a real app, this would redirect to login page
     navigate('/');
   };
@@ -138,7 +143,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     console.log('Profile updated:', editedProfile);
     
     // Show confirmation
-    alert('Profile updated successfully!');
+    toast.success('Profile updated successfully!');
   };
   
   // Handle settings update
@@ -148,7 +153,43 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     console.log('Settings updated');
     
     // Show confirmation
-    alert('Settings updated successfully!');
+    toast.success('Settings updated successfully!');
+  };
+  
+  // Handle profile picture change
+  const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      setIsUploading(true);
+      // Upload profile image and get URL
+      const imageUrl = await uploadProfileImage(file);
+      
+      // Update the profile state with the new avatar URL
+      setEditedProfile(prev => ({
+        ...prev,
+        avatar: imageUrl
+      }));
+      
+      toast.success('Profile picture uploaded successfully');
+    } catch (error) {
+      console.error('Failed to upload profile picture:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to upload profile picture');
+    } finally {
+      setIsUploading(false);
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+  
+  // Trigger file input click
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
   
   // Navigation tabs
@@ -221,7 +262,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 className="focus:outline-none hover:opacity-80 transition-opacity"
                 aria-label="Profile"
               >
-                <UserCircle className="h-8 w-8 text-muted-foreground" />
+                {profile.avatar ? (
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={profile.avatar} alt={profile.name} />
+                    <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <UserCircle className="h-8 w-8 text-muted-foreground" />
+                )}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -288,8 +336,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           </DialogHeader>
           <div className="flex flex-col items-center py-4">
             <Avatar className="h-24 w-24 mb-4">
+              {profile.avatar ? (
+                <AvatarImage src={profile.avatar} alt={profile.name} />
+              ) : null}
               <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
-              {profile.avatar && <AvatarImage src={profile.avatar} alt={profile.name} />}
             </Avatar>
             <h3 className="text-lg font-semibold">{profile.name}</h3>
             <p className="text-sm text-muted-foreground">{profile.username}</p>
@@ -315,10 +365,33 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           </DialogHeader>
           <div className="flex flex-col py-4">
             <div className="flex justify-center mb-4">
-              <Avatar className="h-24 w-24">
-                <AvatarFallback>{editedProfile.name.charAt(0)}</AvatarFallback>
-                {editedProfile.avatar && <AvatarImage src={editedProfile.avatar} alt={editedProfile.name} />}
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-24 w-24 cursor-pointer" onClick={triggerFileInput}>
+                  {editedProfile.avatar ? (
+                    <AvatarImage src={editedProfile.avatar} alt={editedProfile.name} />
+                  ) : null}
+                  <AvatarFallback>
+                    {isUploading ? (
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    ) : (
+                      editedProfile.name.charAt(0)
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                <div 
+                  className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-1.5 cursor-pointer"
+                  onClick={triggerFileInput}
+                >
+                  <Camera className="h-4 w-4" />
+                </div>
+              </div>
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={handleProfilePictureChange}
+              />
             </div>
             
             <div className="space-y-4">
@@ -347,16 +420,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   type="email" 
                   value={editedProfile.email} 
                   onChange={(e) => setEditedProfile({...editedProfile, email: e.target.value})}
-                />
-              </div>
-              
-              <div className="flex flex-col space-y-2">
-                <label htmlFor="avatar" className="text-sm font-medium">Avatar URL</label>
-                <Input 
-                  id="avatar" 
-                  value={editedProfile.avatar} 
-                  placeholder="https://example.com/avatar.jpg"
-                  onChange={(e) => setEditedProfile({...editedProfile, avatar: e.target.value})}
                 />
               </div>
             </div>

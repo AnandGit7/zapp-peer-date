@@ -31,6 +31,45 @@ export const getFromIPFS = async (cid: string): Promise<string> => {
   });
 };
 
+// Upload specifically for profile images, returns a direct URL
+export const uploadProfileImage = async (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      reject(new Error('File must be an image'));
+      return;
+    }
+    
+    // Size limit check (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      reject(new Error('Image must be less than 5MB'));
+      return;
+    }
+    
+    // Create a FileReader to get a data URL
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      // Get the data URL
+      const dataUrl = reader.result as string;
+      console.log(`[IPFS] Processed profile image ${file.name}`);
+      
+      // In a real app with IPFS, we would upload the file and store the CID
+      // For this demo, we're just returning the data URL directly
+      setTimeout(() => {
+        resolve(dataUrl);
+      }, 1000); // Simulate network delay
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'));
+    };
+    
+    // Read the file as a data URL
+    reader.readAsDataURL(file);
+  });
+};
+
 // Simulates chunking a large file for IPFS storage
 export const chunkFile = async (file: File, chunkSize: number = 1024 * 1024): Promise<{ chunks: Blob[], count: number }> => {
   const chunks: Blob[] = [];
