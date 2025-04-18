@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -191,14 +190,13 @@ const Login = () => {
               <div className="space-y-2">
                 <Label htmlFor="verificationCode">Verification Code</Label>
                 <InputOTP
-                  id="verificationCode"
+                  maxLength={6}
                   value={verificationCode}
                   onChange={setVerificationCode}
-                  maxLength={6}
                   render={({ slots }) => (
                     <InputOTPGroup className="gap-2 flex justify-center">
                       {slots.map((slot, i) => (
-                        <InputOTPSlot key={i} {...slot} index={i} />
+                        <InputOTPSlot key={i} index={i} />
                       ))}
                     </InputOTPGroup>
                   )}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +20,6 @@ const Signup = () => {
   const [codeExpiry, setCodeExpiry] = useState<Date | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
 
-  // Set up a timer for code expiry
   useEffect(() => {
     if (codeExpiry) {
       const timer = setInterval(() => {
@@ -49,7 +47,6 @@ const Signup = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Validate phone number 
     if (!phoneNumber || phoneNumber.length < 10) {
       setIsLoading(false);
       toast({
@@ -60,17 +57,14 @@ const Signup = () => {
       return;
     }
     
-    // Generate a random 6-digit code
     const newCode = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedCode(newCode);
     
-    // Set code expiry to 5 minutes from now
     const expiry = new Date();
     expiry.setMinutes(expiry.getMinutes() + 5);
     setCodeExpiry(expiry);
-    setTimeLeft(300); // 5 minutes in seconds
+    setTimeLeft(300);
     
-    // Simulate sending verification code
     setTimeout(() => {
       setIsLoading(false);
       setStep('verify');
@@ -85,7 +79,6 @@ const Signup = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Check if code has expired
     if (timeLeft <= 0) {
       setIsLoading(false);
       toast({
@@ -96,7 +89,6 @@ const Signup = () => {
       return;
     }
 
-    // Simulate verification
     setTimeout(() => {
       setIsLoading(false);
       
@@ -185,14 +177,13 @@ const Signup = () => {
               <div className="space-y-2">
                 <Label htmlFor="verificationCode">Verification Code</Label>
                 <InputOTP
-                  id="verificationCode"
+                  maxLength={6}
                   value={verificationCode}
                   onChange={setVerificationCode}
-                  maxLength={6}
                   render={({ slots }) => (
                     <InputOTPGroup className="gap-2 flex justify-center">
                       {slots.map((slot, i) => (
-                        <InputOTPSlot key={i} {...slot} index={i} />
+                        <InputOTPSlot key={i} index={i} />
                       ))}
                     </InputOTPGroup>
                   )}
@@ -220,7 +211,7 @@ const Signup = () => {
                   variant="outline"
                   className="w-full"
                   onClick={handleResendCode}
-                  disabled={isLoading || timeLeft > 270} // Only allow resend after 30 seconds
+                  disabled={isLoading || timeLeft > 270}
                 >
                   Resend Code
                 </Button>
