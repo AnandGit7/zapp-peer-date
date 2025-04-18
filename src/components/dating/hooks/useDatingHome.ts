@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Match, getAllMatches, updateMatch } from '@/services/DatingService';
 import { toast } from "@/components/ui/use-toast";
@@ -17,7 +16,18 @@ export const useDatingHome = () => {
     try {
       setIsLoadingMatches(true);
       const allMatches = await getAllMatches();
-      setMatches(allMatches);
+      
+      const sanitizedMatches = allMatches.map(match => ({
+        ...match,
+        photos: match.photos || [],
+        interests: match.interests || [],
+        bio: match.bio || "No bio available",
+        location: match.location || "Unknown location",
+        lastActive: match.lastActive || "recently",
+        compatibilityScore: match.compatibilityScore || 0
+      }));
+      
+      setMatches(sanitizedMatches);
     } catch (error) {
       console.error('Failed to load matches:', error);
       toast({

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, X, MapPin, Clock, ThumbsUp, Sparkles, Crown } from 'lucide-react';
+import { Heart, X, MapPin, Clock, ThumbsUp, Sparkles, Crown, Image } from 'lucide-react';
 import { Match } from '@/services/DatingService';
 import { toast } from "@/components/ui/use-toast";
 
@@ -20,11 +20,16 @@ const DiscoveryProfileCard: React.FC<DiscoveryProfileCardProps> = ({
   onLike,
   onDislike
 }) => {
+  // Default photo fallback
+  const profilePhoto = match?.photos && match.photos.length > 0 
+    ? match.photos[0] 
+    : "https://source.unsplash.com/random/600x800?silhouette";
+    
   return (
     <Card className="w-full max-w-md mx-auto">
       <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-lg">
         <img 
-          src={match.photos[0]} 
+          src={profilePhoto}
           alt={match.name} 
           className="w-full h-full object-cover"
         />
@@ -49,7 +54,7 @@ const DiscoveryProfileCard: React.FC<DiscoveryProfileCardProps> = ({
       
       <CardContent className="p-4">
         <div className="flex flex-wrap gap-2 mb-3">
-          {match.interests.map((interest, index) => (
+          {match.interests && match.interests.map((interest, index) => (
             <Badge key={index} variant="outline" className="bg-muted">
               {interest}
             </Badge>
