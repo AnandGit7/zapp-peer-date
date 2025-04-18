@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Crown, MessageCircle, Coffee, Heart, User } from 'lucide-react';
+import { MapPin, Crown, MessageCircle, Coffee, Heart, User, Loader2 } from 'lucide-react';
 import { Match } from '@/services/DatingService';
 import { toast } from "@/components/ui/use-toast";
 
@@ -13,14 +12,28 @@ interface MatchesListProps {
   isPremium: boolean;
   onStartChat: (matchId: string) => void;
   onDiscoverPeople: () => void;
+  isLoading?: boolean;
 }
 
 const MatchesList: React.FC<MatchesListProps> = ({
   matches,
   isPremium,
   onStartChat,
-  onDiscoverPeople
+  onDiscoverPeople,
+  isLoading = false
 }) => {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center p-6">
+        <Loader2 className="h-12 w-12 text-muted-foreground mb-4 animate-spin" />
+        <h3 className="text-xl font-bold mb-2">Loading matches</h3>
+        <p className="text-muted-foreground mb-4">
+          Finding people who matched with you...
+        </p>
+      </div>
+    );
+  }
+
   if (matches.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-6">
