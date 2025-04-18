@@ -23,6 +23,7 @@ import { uploadProfileImage } from '@/services/IPFSService';
 import { toast } from 'sonner';
 import GroupNavigation from '@/components/navigation/GroupNavigation';
 import DatingNavigation from '@/components/navigation/DatingNavigation';
+import DarkModeToggle from '../theme/DarkModeToggle';
 
 type MainLayoutProps = {
   children: React.ReactNode;
@@ -215,6 +216,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           </h1>
         </div>
         <div className="flex items-center gap-4">
+          <DarkModeToggle />
           <button 
             onClick={() => setSearchDialogOpen(true)}
             className="focus:outline-none hover:opacity-80 transition-opacity"
