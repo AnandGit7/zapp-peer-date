@@ -1,13 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Filter, Settings, Crown } from 'lucide-react';
+import { Heart, Filter, Settings, Crown, UserRound } from 'lucide-react';
 import useDatingHome from './hooks/useDatingHome';
 import DiscoveryProfileCard from './DiscoveryProfileCard';
 import EmptyDiscoveryCard from './EmptyDiscoveryCard';
 import PremiumUpgradePrompt from './PremiumUpgradePrompt';
 import MatchesList from './MatchesList';
+import DatingProfileSettings from './DatingProfileSettings';
 
 type DatingHomeEnhancedProps = {
   onStartChat: (matchId: string) => void;
@@ -26,16 +27,24 @@ const DatingHomeEnhanced: React.FC<DatingHomeEnhancedProps> = ({
     isPremium,
     activeTab,
     mutualMatches,
+    isLoading,
     handleLike,
     handleDislike,
     handleUpgradeToPremium,
     handleStartOver,
-    setActiveTab
+    setActiveTab,
+    refreshMatches
   } = useDatingHome();
   
+  const [showSettings, setShowSettings] = useState(false);
+  
   const renderCurrentProfile = () => {
+    if (showSettings) {
+      return <DatingProfileSettings onClose={() => setShowSettings(false)} />;
+    }
+    
     if (currentIndex >= matches.length) {
-      return <EmptyDiscoveryCard onStartOver={handleStartOver} />;
+      return <EmptyDiscoveryCard onStartOver={handleStartOver} isLoading={isLoading} />;
     }
     
     const match = matches[currentIndex];
@@ -60,6 +69,14 @@ const DatingHomeEnhanced: React.FC<DatingHomeEnhancedProps> = ({
         <div className="flex items-center space-x-2">
           <Button variant="ghost" size="icon" className="h-9 w-9 text-white hover:bg-white/20">
             <Filter className="h-5 w-5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-9 w-9 text-white hover:bg-white/20"
+            onClick={() => setShowSettings(true)}
+          >
+            <UserRound className="h-5 w-5" />
           </Button>
           <Button variant="ghost" size="icon" className="h-9 w-9 text-white hover:bg-white/20">
             <Settings className="h-5 w-5" />
@@ -86,7 +103,7 @@ const DatingHomeEnhanced: React.FC<DatingHomeEnhancedProps> = ({
         </div>
         
         <TabsContent value="discover" className="flex-1 p-4 overflow-y-auto data-[state=inactive]:hidden">
-          {!isPremium && <PremiumUpgradePrompt onUpgrade={handleUpgradeToPremium} />}
+          {!isPremium && <PremiumUpgradePrompt onUpgrade={handleUpgradeToPremium} isLoading={isLoading} />}
           {renderCurrentProfile()}
         </TabsContent>
         
@@ -96,6 +113,7 @@ const DatingHomeEnhanced: React.FC<DatingHomeEnhancedProps> = ({
             isPremium={isPremium}
             onStartChat={onStartChat}
             onDiscoverPeople={() => setActiveTab('discover')}
+            isLoading={isLoading}
           />
         </TabsContent>
       </Tabs>

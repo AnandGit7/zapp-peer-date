@@ -139,13 +139,13 @@ export const getAllMatches = async (): Promise<Match[]> => {
         isPremium: false
       };
       
-      localStorage.setItem('datingProfile', JSON.stringify(defaultProfile));
+      await updateDatingProfile(defaultProfile);
     }
     
     const allItems = await getAllItems<Match>('dating');
     
-    // Filter out the initialized flag
-    const validMatches = allItems.filter(match => match.id !== 'initialized');
+    // Filter out the initialized flag and user profile
+    const validMatches = allItems.filter(match => match.id !== 'initialized' && match.id !== 'userProfile');
     
     return validMatches;
   } catch (error) {
@@ -162,6 +162,10 @@ export const removeMatch = async (matchId: string): Promise<void> => {
 // Update user's dating profile
 export const updateDatingProfile = async (profile: any): Promise<void> => {
   try {
+    // Save to IndexedDB for persistence across browser sessions
+    await setItem('dating', 'userProfile', profile);
+    
+    // Also save to localStorage for compatibility with existing code
     localStorage.setItem('datingProfile', JSON.stringify(profile));
   } catch (error) {
     console.error('Failed to update dating profile:', error);
@@ -172,8 +176,26 @@ export const updateDatingProfile = async (profile: any): Promise<void> => {
 // Get user's dating profile
 export const getDatingProfile = async (): Promise<any> => {
   try {
-    const profile = localStorage.getItem('datingProfile');
-    return profile ? JSON.parse(profile) : null;
+    // Try to get from IndexedDB first
+    const profile = await getItem<any>('dating', 'userProfile');
+    
+    if (profile) {
+      // Also update localStorage for compatibility
+      localStorage.setItem('datingProfile', JSON.stringify(profile));
+      return profile;
+    }
+    
+    // Fall back to localStorage if not found in IndexedDB
+    const localProfile = localStorage.getItem('datingProfile');
+    if (localProfile) {
+      const parsedProfile = JSON.parse(localProfile);
+      // Save to IndexedDB for future persistence
+      await setItem('dating', 'userProfile', parsedProfile);
+      return parsedProfile;
+    }
+    
+    // If no profile found, return null
+    return null;
   } catch (error) {
     console.error('Failed to get dating profile:', error);
     return null;

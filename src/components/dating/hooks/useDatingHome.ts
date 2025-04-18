@@ -1,39 +1,38 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Match, getAllMatches, updateMatch } from '@/services/DatingService';
 import { toast } from "@/components/ui/use-toast";
+import { useDatingProfile } from './useDatingProfile';
 
 export const useDatingHome = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPremium, setIsPremium] = useState(false);
   const [activeTab, setActiveTab] = useState('discover');
+  const [isLoadingMatches, setIsLoadingMatches] = useState(true);
+  const { profile, isLoading: isLoadingProfile, upgradeToPremium } = useDatingProfile();
+  
+  const isPremium = profile?.isPremium || false;
+  
+  const loadMatches = useCallback(async () => {
+    try {
+      setIsLoadingMatches(true);
+      const allMatches = await getAllMatches();
+      setMatches(allMatches);
+    } catch (error) {
+      console.error('Failed to load matches:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load matches. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingMatches(false);
+    }
+  }, []);
   
   useEffect(() => {
-    const loadMatches = async () => {
-      try {
-        const allMatches = await getAllMatches();
-        setMatches(allMatches);
-      } catch (error) {
-        console.error('Failed to load matches:', error);
-      }
-    };
-    
-    const checkPremium = () => {
-      try {
-        const profile = localStorage.getItem('datingProfile');
-        if (profile) {
-          const parsed = JSON.parse(profile);
-          setIsPremium(parsed.isPremium || false);
-        }
-      } catch (error) {
-        console.error('Failed to check premium status:', error);
-      }
-    };
-    
     loadMatches();
-    checkPremium();
-  }, []);
+  }, [loadMatches]);
   
   const handleLike = async () => {
     if (currentIndex >= matches.length) return;
@@ -52,6 +51,11 @@ export const useDatingHome = () => {
       setCurrentIndex(currentIndex + 1);
     } catch (error) {
       console.error('Failed to update match:', error);
+      toast({
+        title: "Error",
+        description: "Failed to like profile. Please try again.",
+        variant: "destructive"
+      });
     }
   };
   
@@ -67,28 +71,28 @@ export const useDatingHome = () => {
       setCurrentIndex(currentIndex + 1);
     } catch (error) {
       console.error('Failed to update match:', error);
+      toast({
+        title: "Error",
+        description: "Failed to skip profile. Please try again.",
+        variant: "destructive"
+      });
     }
   };
   
-  const handleUpgradeToPremium = () => {
-    try {
-      const profile = localStorage.getItem('datingProfile') || '{}';
-      const parsed = JSON.parse(profile);
-      parsed.isPremium = true;
-      localStorage.setItem('datingProfile', JSON.stringify(parsed));
-      setIsPremium(true);
-      
+  const handleUpgradeToPremium = async () => {
+    const success = await upgradeToPremium();
+    
+    if (success) {
       toast({
-        title: "Upgraded to Premium!",
+        title: "Welcome to Premium!",
         description: "You now have access to all premium features.",
       });
-    } catch (error) {
-      console.error('Failed to set premium status:', error);
     }
   };
   
   const handleStartOver = () => {
     setCurrentIndex(0);
+    loadMatches();
   };
   
   const mutualMatches = matches.filter(match => match.liked && match.hasLikedYou);
@@ -99,11 +103,13 @@ export const useDatingHome = () => {
     isPremium,
     activeTab,
     mutualMatches,
+    isLoading: isLoadingMatches || isLoadingProfile,
     handleLike,
     handleDislike,
     handleUpgradeToPremium,
     handleStartOver,
-    setActiveTab
+    setActiveTab,
+    refreshMatches: loadMatches
   };
 };
 
